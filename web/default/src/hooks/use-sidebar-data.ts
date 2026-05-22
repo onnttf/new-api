@@ -30,6 +30,7 @@ import {
   Radio,
   FlaskConical,
   MessageSquare,
+  Sparkles,
   CreditCard,
   ListTodo,
   Settings,
@@ -59,6 +60,11 @@ export function useSidebarData(): SidebarData {
             title: t('Playground'),
             url: '/playground',
             icon: FlaskConical,
+          },
+          {
+            title: t('Media Generation'),
+            url: '/media-generation',
+            icon: Sparkles,
           },
           {
             title: t('Chat'),
