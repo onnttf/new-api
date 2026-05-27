@@ -174,7 +174,7 @@ Step 5：联调 ⬅️ 当前阶段
 
 ## 五、明确剔除的方案（v1 文档遗留）
 
-以下来自 v1 文档，**全部不做**：
+以下来自 v1 文档，**全部不做**1：
 
 - ❌ Node.js + Express 的独立 media-service
 - ❌ 反向调用 New API 管理员 Token 扣余额（`PUT /api/user/:id` with `quota: -amount`）
