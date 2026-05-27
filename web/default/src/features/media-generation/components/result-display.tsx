@@ -17,9 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
-import { Download, Loader2 } from 'lucide-react'
+import { Download, Loader2, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 import { Progress } from '@/components/ui/progress'
 import type { GenerationResult, VideoTask } from '../types'
 
@@ -69,7 +76,7 @@ function Body({ result, videoTask, isPolling }: Props) {
 
   if (isPolling) {
     return (
-      <div className='flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-md border bg-muted/30'>
+      <div className='bg-muted/30 flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-lg border'>
         <Loader2 className='text-muted-foreground size-6 animate-spin' />
         <p className='text-muted-foreground text-sm'>
           {t('Task in progress')}: {videoTask?.status ?? 'queued'}
@@ -83,8 +90,18 @@ function Body({ result, videoTask, isPolling }: Props) {
 
   if (!result) {
     return (
-      <div className='text-muted-foreground flex aspect-video w-full items-center justify-center rounded-md border border-dashed text-center text-sm'>
-        {t('Results will appear here after generation')}
+      <div className='bg-muted/10 flex aspect-video w-full items-center justify-center rounded-lg border border-dashed'>
+        <Empty className='border-0'>
+          <EmptyHeader>
+            <EmptyMedia variant='icon'>
+              <Sparkles />
+            </EmptyMedia>
+            <EmptyTitle>{t('Nothing here yet')}</EmptyTitle>
+            <EmptyDescription>
+              {t('Results will appear here after generation')}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
     )
   }
@@ -108,6 +125,10 @@ function Body({ result, videoTask, isPolling }: Props) {
   }
 
   return (
-    <video controls src={result.videoUrl} className='aspect-video w-full rounded-md border' />
+    <video
+      controls
+      src={result.videoUrl}
+      className='aspect-video w-full rounded-md border'
+    />
   )
 }

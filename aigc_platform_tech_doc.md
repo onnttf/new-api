@@ -177,6 +177,15 @@ Step 6：前端 UI 抄 kie.ai seedance playground 风格 ✅ 完成
        - Resolution / Aspect Ratio / Duration pill 组（只暴露 LiblibAI 实际接受的子集）
        - Reset / Run 按钮
        - 完整字段由前端写入 metadata，后端 adaptor.go buildPayload 已支持，无后端改动
+
+Step 7：UI 抛光 + 空态友好化 ✅ 完成
+       - 没有 enabled API key 时不再显示一条红字 —— 用 Empty 组件给出引导卡片 + 「Create API Key」按钮直跳 /keys
+       - 没选模型时不再默认掉到 image form（误导用户）；改成 MousePointerClick 图标 + 「Select a model to start」引导
+       - Output 空态用 Sparkles 图标 + 「Nothing here yet」替代之前的纯文字
+       - Run / Generate Image 按钮加 Sparkles 图标 + 上边一条 border-t 分隔操作区
+       - Frames 上传区改成更柔和的圆角 + hover 描边色 + ImageIcon 占位
+       - 页面标题区加 Sparkles 圆角徽标，跟模型选择左右分布
+       - Card 加 self-start 让两栏在视觉上对齐顶部，不会因为 Output 矮就被拉成一样高
 ```
 
 ---

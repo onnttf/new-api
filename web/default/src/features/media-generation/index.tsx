@@ -17,9 +17,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
+import { KeyRound, MousePointerClick, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 import { useActiveChatKey } from '@/features/chat/hooks/use-active-chat-key'
 import { submitImage, submitVideo } from './api'
 import { ImageForm } from './components/image-form'
@@ -44,6 +54,7 @@ const DEFAULT_IMAGE_FORM: ImageFormState = {
 
 export function MediaGeneration() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { data: models, isLoading: modelsLoading } = useMediaModels()
   // 复用 chat2link 同款 hook：从用户已启用的 token 里挑第一把作为 Bearer。
   const { data: token, error: keyError } = useActiveChatKey(true)
@@ -139,32 +150,58 @@ export function MediaGeneration() {
     }
   }
 
+  // 没启用的 API key —— 走友好引导，不要一句红字。
   if (keyError) {
     return (
-      <div className='mx-auto max-w-2xl p-6'>
-        <p className='text-destructive'>
-          {keyError instanceof Error
-            ? keyError.message
-            : t('No enabled API keys found. Create or enable one first.')}
-        </p>
+      <div className='mx-auto flex w-full max-w-md flex-col p-6'>
+        <Card>
+          <CardContent className='pt-6'>
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant='icon'>
+                  <KeyRound />
+                </EmptyMedia>
+                <EmptyTitle>{t('No API key yet')}</EmptyTitle>
+                <EmptyDescription>
+                  {t(
+                    'Media generation calls the OpenAI-compatible API and needs an enabled key. Create one to get started.'
+                  )}
+                </EmptyDescription>
+              </EmptyHeader>
+              <Button onClick={() => navigate({ to: '/keys' })}>
+                <KeyRound className='size-4' />
+                {t('Create API Key')}
+              </Button>
+            </Empty>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  const isVideo = selectedModel?.kind === 'video'
   const isPolling = Boolean(pendingVideoTaskId)
   const formDisabled = !token || !selectedModel || isPolling
   const isBusy = formDisabled || isSubmitting
+  const isVideo = selectedModel?.kind === 'video'
 
   return (
     <div className='mx-auto flex w-full max-w-7xl flex-col gap-6 p-6'>
       {/* 顶部：页面标题 + 模型下拉小型化 */}
-      <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-        <div>
-          <h1 className='text-2xl font-semibold'>{t('Media Generation')}</h1>
-          <p className='text-muted-foreground text-sm'>
-            {t('Generate images or videos. Video tasks are polled automatically.')}
-          </p>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+        <div className='flex items-start gap-3'>
+          <div className='bg-primary/10 text-primary mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg'>
+            <Sparkles className='size-5' />
+          </div>
+          <div>
+            <h1 className='text-2xl font-semibold tracking-tight'>
+              {t('Media Generation')}
+            </h1>
+            <p className='text-muted-foreground text-sm'>
+              {t(
+                'Generate images or videos. Video tasks are polled automatically.'
+              )}
+            </p>
+          </div>
         </div>
         <div className='w-full sm:w-72'>
           <ModelSelector
@@ -178,12 +215,14 @@ export function MediaGeneration() {
 
       {/* 主体：双栏 Input / Output */}
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-        <Card>
+        <Card className='self-start'>
           <CardHeader>
             <CardTitle>{t('Input')}</CardTitle>
           </CardHeader>
           <CardContent>
-            {isVideo ? (
+            {!selectedModel ? (
+              <NoModelEmpty hasModels={(models?.length ?? 0) > 0} />
+            ) : isVideo ? (
               <VideoForm
                 value={videoForm}
                 onChange={setVideoForm}
@@ -204,7 +243,7 @@ export function MediaGeneration() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className='self-start'>
           <CardHeader>
             <CardTitle>{t('Output')}</CardTitle>
           </CardHeader>
@@ -218,5 +257,28 @@ export function MediaGeneration() {
         </Card>
       </div>
     </div>
+  )
+}
+
+function NoModelEmpty({ hasModels }: { hasModels: boolean }) {
+  const { t } = useTranslation()
+  return (
+    <Empty className='border-0 py-12'>
+      <EmptyHeader>
+        <EmptyMedia variant='icon'>
+          <MousePointerClick />
+        </EmptyMedia>
+        <EmptyTitle>
+          {hasModels ? t('Select a model to start') : t('No models available')}
+        </EmptyTitle>
+        <EmptyDescription>
+          {hasModels
+            ? t('Pick a model from the top-right dropdown.')
+            : t(
+                'Ask an administrator to enable an image or video model for your group.'
+              )}
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   )
 }

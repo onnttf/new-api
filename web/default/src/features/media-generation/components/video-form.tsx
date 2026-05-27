@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Upload, X } from 'lucide-react'
+import { Image as ImageIcon, Sparkles, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -65,17 +65,17 @@ export function VideoForm({
       >
         <div
           className={cn(
-            'flex flex-col items-center gap-3 rounded-lg border-2 border-dashed p-6 transition-colors',
-            hasUrl ? 'border-border bg-muted/30' : 'border-input'
+            'flex flex-col items-center gap-4 rounded-xl border-2 border-dashed bg-muted/20 px-6 py-5 transition-colors',
+            hasUrl ? 'border-primary/40 bg-primary/[0.03]' : 'border-input hover:border-primary/30'
           )}
         >
           {showPreview ? (
-            <div className='relative w-full max-w-[240px]'>
+            <div className='relative w-full max-w-[260px]'>
               <img
                 src={trimmedUrl}
                 alt='first frame preview'
                 onError={() => setPreviewError(true)}
-                className='aspect-video w-full rounded-md border object-cover'
+                className='aspect-video w-full rounded-md border object-cover shadow-sm'
               />
               <button
                 type='button'
@@ -84,13 +84,15 @@ export function VideoForm({
                   setPreviewError(false)
                   onChange({ ...value, firstFrameUrl: '' })
                 }}
-                className='absolute -top-2 -right-2 rounded-full border bg-background p-1 shadow-sm'
+                className='absolute -top-2 -right-2 rounded-full border bg-background p-1 shadow-sm hover:bg-muted'
               >
                 <X className='size-3' />
               </button>
             </div>
           ) : (
-            <Upload className='text-muted-foreground size-8' />
+            <div className='bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-lg'>
+              <ImageIcon className='size-5' />
+            </div>
           )}
           <Input
             type='url'
@@ -200,7 +202,7 @@ export function VideoForm({
       />
 
       {/* Reset / Run */}
-      <div className='flex items-center justify-end gap-2 pt-2'>
+      <div className='flex items-center justify-end gap-2 border-t pt-4'>
         <Button variant='outline' onClick={onReset} disabled={disabled || isSubmitting}>
           {t('Reset')}
         </Button>
@@ -208,6 +210,7 @@ export function VideoForm({
           onClick={onSubmit}
           disabled={disabled || isSubmitting || !value.prompt.trim()}
         >
+          <Sparkles className='size-4' />
           {isSubmitting ? t('Generating...') : t('Run')}
         </Button>
       </div>

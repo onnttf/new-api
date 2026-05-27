@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
+import { Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -102,12 +103,15 @@ export function ImageForm({
         </div>
       </div>
 
-      <Button
-        onClick={onSubmit}
-        disabled={disabled || isSubmitting || !value.prompt.trim()}
-      >
-        {isSubmitting ? t('Generating...') : t('Generate Image')}
-      </Button>
+      <div className='flex items-center justify-end border-t pt-4'>
+        <Button
+          onClick={onSubmit}
+          disabled={disabled || isSubmitting || !value.prompt.trim()}
+        >
+          <Sparkles className='size-4' />
+          {isSubmitting ? t('Generating...') : t('Generate Image')}
+        </Button>
+      </div>
     </div>
   )
 }
