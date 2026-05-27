@@ -17,7 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
-import { Loader2 } from 'lucide-react'
+import { Download, Loader2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import type { GenerationResult, VideoTask } from '../types'
 
@@ -30,14 +32,49 @@ type Props = {
 export function ResultDisplay({ result, videoTask, isPolling }: Props) {
   const { t } = useTranslation()
 
-  if (isPolling && videoTask) {
+  // 输出类型角标（video / image / null）
+  const outputType = result?.kind ?? (isPolling ? 'video' : null)
+
+  return (
+    <div className='flex flex-col gap-4'>
+      {outputType && (
+        <div className='flex items-center gap-2'>
+          <span className='text-muted-foreground text-sm'>{t('output type')}</span>
+          <Badge variant='secondary'>{outputType}</Badge>
+        </div>
+      )}
+
+      <Body result={result} videoTask={videoTask} isPolling={isPolling} />
+
+      {result?.kind === 'video' && result.videoUrl && (
+        <div className='flex justify-start'>
+          <Button
+            variant='outline'
+            size='sm'
+            render={
+              <a href={result.videoUrl} download target='_blank' rel='noreferrer' />
+            }
+          >
+            <Download className='size-4' />
+            {t('Download')}
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Body({ result, videoTask, isPolling }: Props) {
+  const { t } = useTranslation()
+
+  if (isPolling) {
     return (
-      <div className='flex flex-col items-center gap-3 rounded-md border p-6'>
+      <div className='flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-md border bg-muted/30'>
         <Loader2 className='text-muted-foreground size-6 animate-spin' />
         <p className='text-muted-foreground text-sm'>
-          {t('Task in progress')}: {videoTask.status}
+          {t('Task in progress')}: {videoTask?.status ?? 'queued'}
         </p>
-        {typeof videoTask.progress === 'number' && (
+        {typeof videoTask?.progress === 'number' && videoTask.progress > 0 && (
           <Progress value={videoTask.progress} className='w-64' />
         )}
       </div>
@@ -46,7 +83,7 @@ export function ResultDisplay({ result, videoTask, isPolling }: Props) {
 
   if (!result) {
     return (
-      <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
+      <div className='text-muted-foreground flex aspect-video w-full items-center justify-center rounded-md border border-dashed text-center text-sm'>
         {t('Results will appear here after generation')}
       </div>
     )
@@ -70,12 +107,7 @@ export function ResultDisplay({ result, videoTask, isPolling }: Props) {
     )
   }
 
-  // video
   return (
-    <video
-      controls
-      src={result.videoUrl}
-      className='w-full rounded-md border'
-    />
+    <video controls src={result.videoUrl} className='aspect-video w-full rounded-md border' />
   )
 }

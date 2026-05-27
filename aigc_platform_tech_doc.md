@@ -168,6 +168,15 @@ Step 5：联调 ⬅️ 当前阶段
        - 给 `seedance` 模型设 quota 价格
        - 在前端「图视频生成」页选 seedance 模型，跑 t2v + i2v
        - 观察日志确认 status 终态、自动退款（如果失败）
+
+Step 6：前端 UI 抄 kie.ai seedance playground 风格 ✅ 完成
+       - 左 Input / 右 Output 双栏卡片
+       - Frames（首帧 URL 输入框 + 缩略图预览）
+       - Prompt textarea
+       - Generate Audio / Web Search / NSFW Checker Switch
+       - Resolution / Aspect Ratio / Duration pill 组（只暴露 LiblibAI 实际接受的子集）
+       - Reset / Run 按钮
+       - 完整字段由前端写入 metadata，后端 adaptor.go buildPayload 已支持，无后端改动
 ```
 
 ---

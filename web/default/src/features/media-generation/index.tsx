@@ -19,12 +19,14 @@ For commercial licensing, please contact support@quantumnous.com
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useActiveChatKey } from '@/features/chat/hooks/use-active-chat-key'
 import { submitImage, submitVideo } from './api'
 import { ImageForm } from './components/image-form'
 import { ModelSelector } from './components/model-selector'
 import { ResultDisplay } from './components/result-display'
 import { VideoForm } from './components/video-form'
+import { DEFAULT_VIDEO_FORM } from './constants'
 import { useMediaModels } from './hooks/use-models'
 import { useVideoTaskPolling } from './hooks/use-task-polling'
 import type {
@@ -38,11 +40,6 @@ const DEFAULT_IMAGE_FORM: ImageFormState = {
   prompt: '',
   size: '1024x1024',
   n: 1,
-}
-const DEFAULT_VIDEO_FORM: VideoFormState = {
-  prompt: '',
-  seconds: '5',
-  size: '1280x720',
 }
 
 export function MediaGeneration() {
@@ -61,7 +58,7 @@ export function MediaGeneration() {
   const [result, setResult] = useState<GenerationResult | null>(null)
   const [latestVideoTask, setLatestVideoTask] = useState<VideoTask | null>(null)
 
-  // 默认选第一个模型。
+  // 默认选第一个模型
   useEffect(() => {
     if (!modelValue && models && models.length > 0) {
       setModelValue(models[0].value)
@@ -94,7 +91,7 @@ export function MediaGeneration() {
     },
   })
 
-  // 把轮询中的 task 状态实时反映到 UI。
+  // 轮询中的 task 状态实时反映到 UI
   useEffect(() => {
     if (pollingState.status === 'polling' || pollingState.status === 'done') {
       setLatestVideoTask(pollingState.task)
@@ -154,49 +151,72 @@ export function MediaGeneration() {
     )
   }
 
+  const isVideo = selectedModel?.kind === 'video'
+  const isPolling = Boolean(pendingVideoTaskId)
+  const formDisabled = !token || !selectedModel || isPolling
+  const isBusy = formDisabled || isSubmitting
+
   return (
-    <div className='mx-auto flex w-full max-w-4xl flex-col gap-6 p-6'>
-      <div>
-        <h1 className='text-2xl font-semibold'>{t('Media Generation')}</h1>
-        <p className='text-muted-foreground text-sm'>
-          {t(
-            'Pick a model and generate images or videos. Video tasks are polled automatically.'
-          )}
-        </p>
+    <div className='mx-auto flex w-full max-w-7xl flex-col gap-6 p-6'>
+      {/* 顶部：页面标题 + 模型下拉小型化 */}
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+        <div>
+          <h1 className='text-2xl font-semibold'>{t('Media Generation')}</h1>
+          <p className='text-muted-foreground text-sm'>
+            {t('Generate images or videos. Video tasks are polled automatically.')}
+          </p>
+        </div>
+        <div className='w-full sm:w-72'>
+          <ModelSelector
+            models={models ?? []}
+            value={modelValue}
+            onChange={setModelValue}
+            disabled={modelsLoading || isBusy}
+          />
+        </div>
       </div>
 
-      <ModelSelector
-        models={models ?? []}
-        value={modelValue}
-        onChange={setModelValue}
-        disabled={modelsLoading || isSubmitting || Boolean(pendingVideoTaskId)}
-      />
+      {/* 主体：双栏 Input / Output */}
+      <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('Input')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isVideo ? (
+              <VideoForm
+                value={videoForm}
+                onChange={setVideoForm}
+                onSubmit={handleSubmitVideo}
+                onReset={() => setVideoForm(DEFAULT_VIDEO_FORM)}
+                isSubmitting={isSubmitting}
+                disabled={formDisabled}
+              />
+            ) : (
+              <ImageForm
+                value={imageForm}
+                onChange={setImageForm}
+                onSubmit={handleSubmitImage}
+                isSubmitting={isSubmitting}
+                disabled={formDisabled}
+              />
+            )}
+          </CardContent>
+        </Card>
 
-      {selectedModel?.kind === 'video' ? (
-        <VideoForm
-          value={videoForm}
-          onChange={setVideoForm}
-          onSubmit={handleSubmitVideo}
-          isSubmitting={isSubmitting}
-          disabled={
-            !token || !selectedModel || Boolean(pendingVideoTaskId)
-          }
-        />
-      ) : (
-        <ImageForm
-          value={imageForm}
-          onChange={setImageForm}
-          onSubmit={handleSubmitImage}
-          isSubmitting={isSubmitting}
-          disabled={!token || !selectedModel}
-        />
-      )}
-
-      <ResultDisplay
-        result={result}
-        videoTask={latestVideoTask}
-        isPolling={Boolean(pendingVideoTaskId)}
-      />
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('Output')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResultDisplay
+              result={result}
+              videoTask={latestVideoTask}
+              isPolling={isPolling}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

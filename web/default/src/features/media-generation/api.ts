@@ -26,7 +26,7 @@ import type {
 } from './types'
 
 // /v1/* 接口要求 Bearer Token；从 useActiveChatKey() 里取，再以 header 形式带过去。
-// 这里统一把 skipBusinessError 设置上，避免命中默认的业务错误拦截（这些接口走 OpenAI 兼容格式，不是 newapi 的 {success, message} 格式）。
+// skipBusinessError 让 axios 拦截器放过这些 OpenAI 兼容响应（不走 {success, message} 业务格式）。
 function authHeader(token: string) {
   return {
     Authorization: `Bearer ${token}`,
@@ -53,24 +53,32 @@ export async function submitImage(
   return res.data as ImageGenerationResult
 }
 
+// 把 UI 表单展开成 newapi 的 TaskSubmitReq；ratio / resolution / enableSound / search_enabled /
+// autoCompliance 全部塞到 metadata 里，由 adaptor.go buildPayload 读取。
 export async function submitVideo(
   payload: VideoFormState & { model: string },
   token: string
 ): Promise<VideoTask> {
-  const res = await api.post(
-    API_ENDPOINTS.VIDEO_GENERATIONS,
-    {
-      model: payload.model,
-      prompt: payload.prompt,
-      seconds: payload.seconds,
-      size: payload.size,
+  const body: Record<string, unknown> = {
+    model: payload.model,
+    prompt: payload.prompt,
+    duration: payload.duration,
+    metadata: {
+      ratio: payload.aspectRatio,
+      resolution: payload.resolution,
+      enableSound: payload.generateAudio ? 'on' : 'off',
+      search_enabled: payload.webSearch ? 1 : 0,
+      autoCompliance: payload.nsfwChecker ? 1 : 0,
     },
-    {
-      headers: authHeader(token),
-      skipBusinessError: true,
-    } as Record<string, unknown>
-  )
-  // 提交接口直接返回 OpenAIVideo 兼容结构（参考 doubao adaptor DoResponse）。
+  }
+  if (payload.firstFrameUrl.trim()) {
+    body.images = [payload.firstFrameUrl.trim()]
+  }
+
+  const res = await api.post(API_ENDPOINTS.VIDEO_GENERATIONS, body, {
+    headers: authHeader(token),
+    skipBusinessError: true,
+  } as Record<string, unknown>)
   return res.data as VideoTask
 }
 
@@ -83,7 +91,7 @@ export async function fetchVideoTask(
     {
       headers: authHeader(token),
       skipBusinessError: true,
-      disableDuplicate: true, // 轮询本来就需要重复请求，关掉并发去重
+      disableDuplicate: true, // 轮询需要重复请求，关掉并发去重
     } as Record<string, unknown>
   )
   return res.data as VideoTask

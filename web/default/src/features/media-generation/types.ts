@@ -33,11 +33,21 @@ export type ImageFormState = {
   n: number
 }
 
-// 视频表单参数。映射到 POST /v1/video/generations 的 TaskSubmitReq。
+// 视频表单参数。对应 LiblibAI seedance 能走通的字段集合。
+// kie.ai 那边 7 个比例 / 3 个分辨率 / 4-15s 任意时长 在这里收敛成 LiblibAI 实际接受的子集。
+export type Resolution = '720p' | '1080p'
+export type AspectRatio = '16:9' | '4:3' | '1:1'
+export type Duration = 5 | 10
+
 export type VideoFormState = {
   prompt: string
-  seconds: string // '5' | '10' …
-  size: string
+  firstFrameUrl: string // 单图 i2v；空串表示纯文生视频
+  generateAudio: boolean
+  resolution: Resolution
+  aspectRatio: AspectRatio
+  duration: Duration
+  webSearch: boolean
+  nsfwChecker: boolean // 对应上游 autoCompliance
 }
 
 // 视频任务轮询返回（OpenAIVideo 兼容）。
